@@ -1,0 +1,33 @@
+trigger SendConfirmationEmail on Session_Speaker__c (after insert) {
+
+List<Id> sessionSpeakerId = new List<Id>();
+
+    
+    for (Session_Speaker__c eachItem:Trigger.New)
+		sessionSpeakerId.add(eachItem.Id);
+
+    List<Session_Speaker__c> sessionSpeakersList = new List<Session_Speaker__c>();
+       
+    sessionSpeakersList = [select Speaker__r.First_Name__c,
+        		Speaker__r.Last_Name__c,
+        		Speaker__r.email__c,
+         		Session__r.Name,
+         		Session__r.Session_Date__c
+         from Session_Speaker__c where Id in :sessionSpeakerId];
+    
+    for (Session_Speaker__c eachItem:sessionSpeakersList)
+    {
+        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+        List<String> email = new List<String>();
+        email.add(eachItem.Speaker__r.email__c);
+        mail.setToAddresses(email);
+        mail.setSubject('Session Confirmation');
+        mail.setPlaintextBody('Dear '+ eachItem.Speaker__r.First_name__c + ' ' + eachItem.Speaker__r.last_name__c + 
+            '\n Your session is confirmed.Thank you for speaking at our conference!. \nYour session details: \n Session Name - ' +
+            eachItem.Session__r.Name + '\n Date & Time - ' + eachItem.Session__r.Session_Date__c);
+        Messaging.sendEmail(new Messaging.singleEmailMessage[] {mail});
+    }
+        
+   
+        
+}
