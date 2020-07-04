@@ -1,0 +1,39 @@
+@isTest
+public class RejectDoubleBookingTest {
+
+    @isTest
+    static void testSingleBooking(){
+        Datetime bookingDate = System.now();
+        Session__c s = new Session__c(Name='Session1',Session_Date__c = bookingDate);
+        insert s;
+        
+        Speaker__c sp = new Speaker__C(First_Name__c = 'First');
+        insert sp;
+        
+        Session_speaker__c ss=new Session_Speaker__c(Session__c = s.Id,Speaker__c = sp.Id);
+        Test.startTest();
+        Database.SaveResult result = Database.insert(ss,false);
+        Test.stopTest();
+        System.assert(result.isSuccess());
+    }
+    
+        @isTest
+    static void testDoubleBooking(){
+        Datetime bookingDate = System.now();
+        Session__c s = new Session__c(Name='Session1',Session_Date__c = bookingDate);
+        insert s;
+        Session__c s1 = new Session__c(Name='Session2',Session_Date__c = bookingDate);
+        insert s1;        
+        Speaker__c sp = new Speaker__C(First_Name__c = 'First');
+        insert sp;
+        
+        Session_speaker__c ss=new Session_Speaker__c(Session__c = s.Id,Speaker__c = sp.Id);
+        insert ss;
+        Session_speaker__c ss1=new Session_Speaker__c(Session__c = s1.Id,Speaker__c = sp.Id);        
+        Test.startTest();
+
+        Database.SaveResult result = Database.insert(ss1,false);
+        Test.stopTest();
+        System.assert(!result.isSuccess());
+    }
+}
