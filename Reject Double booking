@@ -1,0 +1,44 @@
+trigger RejectDoubleBooking on Session_Speaker__c (before insert,before update) {
+
+    List<Id> speakers = new List<Id>();
+    For (Session_Speaker__c eachItem:Trigger.New)
+        speakers.add(eachItem.Speaker__c);
+
+    List<Session_Speaker__C> sessionSpeakers = [select Speaker__c, Session__r.Session_Date__c from
+                                                Session_Speaker__c where
+                                                Speaker__c in :speakers                                            
+                                               ];
+    Map<Id,DateTime> speakerDates = new Map<Id,DateTime>();
+ 	For (Session_Speaker__C eachItem:sessionSpeakers)
+        speakerDates.put(eachItem.Speaker__c,eachItem.Session__r.Session_Date__c);    
+    System.debug(speakerDates.keySet());
+    System.debug(speakerDates.values());
+    //
+    List<Id> sessions = new List<Id>();
+    For (Session_Speaker__c eachItem:Trigger.New)
+    {
+        System.debug(eachItem.Session__c);
+
+        sessions.add(eachItem.Session__c);
+    }
+        System.debug(sessions[0]);
+    List<Session__c> sessionSpeakers1 = [select Session__c, Session_Date__c from
+                                                Session__c // where
+                                               // Session__c in :sessions                                            
+                                               ];
+    System.debug(sessionSpeakers1[0]);
+    Map<Id,DateTime> sessionDates = new Map<Id,DateTime>();
+ 	For (Session__C eachItem:sessionSpeakers1)
+        sessionDates.put(eachItem.Id,eachItem.Session_Date__c);
+        System.debug(sessionDates.keySet());
+    System.debug(sessionDates.values());
+//    
+    for(Session_Speaker__c eachRec:Trigger.New)
+    {
+        System.debug('Session date: ' + sessionDates.get(eachRec.Session__C));
+        System.debug('Speaker date: ' + speakerDates.get(eachRec.Speaker__C));    
+		If (sessionDates.get(eachRec.Session__C) == speakerDates.get(eachRec.Speaker__c))
+        	eachRec.addError('This speaker is already booked at this time');
+    }
+        
+}
